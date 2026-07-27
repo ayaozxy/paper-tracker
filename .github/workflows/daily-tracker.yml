@@ -10,6 +10,15 @@ on:
     - cron: '10 2 * * *'
   workflow_dispatch:
     # 支持手动在 GitHub Actions 页面触发
+    inputs:
+      since_days:
+        description: "查询过去 N 天的新论文（默认 3）"
+        required: false
+        default: '3'
+      extra_args:
+        description: "传给 tracker.py 的额外参数（如 --no-dblp）"
+        required: false
+        default: ''
 
 permissions:
   contents: write   # 允许把结果 commit 回仓库
@@ -36,8 +45,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run tracker
+        env:
+          SINCE_DAYS: ${{ github.event.inputs.since_days || '3' }}
+          EXTRA_ARGS: ${{ github.event.inputs.extra_args }}
         run: |
-          python src/tracker.py --since-days 2 --no-pdf
+          python src/tracker.py --since-days "$SINCE_DAYS" --no-pdf $EXTRA_ARGS
         # 注意 --no-pdf：PDF 体积大，长期会撑爆仓库。
         # 如果你确实要存 PDF，建议接 git-lfs 或 object storage。
 

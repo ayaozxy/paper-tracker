@@ -1,0 +1,54 @@
+name: Daily Paper Tracker
+
+# 推荐方案：把 tools/arxiv-tracker/ 目录整体 push 到一个独立的 GitHub 仓库，
+# 然后这个仓库每天 UTC 02:00（北京时间 10:00）自动跑一次。
+# 跑完会把 digests/、papers/、state.json 自动 commit 回 main 分支。
+
+on:
+  schedule:
+    # UTC 02:10 每天 — 避开整点拥挤
+    - cron: '10 2 * * *'
+  workflow_dispatch:
+    # 支持手动在 GitHub Actions 页面触发
+
+permissions:
+  contents: write   # 允许把结果 commit 回仓库
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL || 'gpt-5.4-mini' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tracker
+        run: |
+          python src/tracker.py --since-days 2 --no-pdf
+        # 注意 --no-pdf：PDF 体积大，长期会撑爆仓库。
+        # 如果你确实要存 PDF，建议接 git-lfs 或 object storage。
+
+      - name: Commit digest
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add digests state.json || true
+          if git diff --cached --quiet; then
+            echo "nothing new today"
+          else
+            git commit -m "chore(tracker): $(date -u +%F) digest"
+            git push
+          fi

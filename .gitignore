@@ -1,0 +1,14 @@
+# 屏蔽本地状态（含已下载 PDF、venv、敏感配置）
+.venv/
+__pycache__/
+*.pyc
+papers/
+!digests/.gitkeep
+
+# 不要把 state.json 提交到 git（GHA 单独管理）
+# 如果你想要在 GHA 之外手动长期跑，可以临时 untrack：
+#   git update-index --no-assume-unchanged state.json
+state.json
+
+# 本地 .env（如有）
+.env

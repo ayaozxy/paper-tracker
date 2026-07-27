@@ -1,0 +1,39 @@
+# Tracker 关键词配置
+# 每个顶级 key 是一个"主题流"，tracker 会为每个流独立查询并去重
+# 每次运行只查询"最近 N 天"内的论文（由 days_back 控制）
+
+days_back: 14          # 查询过去 14 天的新论文
+max_per_topic: 25      # 每个主题每次最多处理的论文数（避免 LLM 账单失控）
+summary_language: zh   # 总结输出语言
+
+topics:
+  ml_for_eda:
+    description: "ML / LLM for EDA, chip design, hardware synthesis"
+    # arxiv 查询：用字段前缀 cat: (类别) + all: (任意字段)
+    # 支持的前缀: ti (title), abs (abstract), au (author), cat (category)
+    arxiv_queries:
+      - 'cat:cs.AR AND (abs:"machine learning" OR abs:"deep learning" OR abs:LLM)'
+      - 'cat:cs.AR AND (abs:"logic synthesis" OR abs:"placement" OR abs:"routing" OR abs:RTL)'
+      - 'cat:cs.LG AND (abs:"EDA" OR abs:"chip design" OR abs:"hardware synthesis" OR abs:"physical design")'
+      - 'cat:cs.AI AND abs:"Verilog" OR abs:"RTL generation"'
+    # DBLP 查询：纯关键词，会自动叠加 venue + year 过滤
+    dblp_queries:
+      - "machine learning EDA"
+      - "deep learning logic synthesis"
+      - "LLM hardware design"
+      - "reinforcement learning placement routing"
+    dblp_venues:
+      - "IEEE Trans. CAD"     # TCAD
+      - "ACM Trans. Des. Autom. Electron. Syst."  # TODAES
+      - "Proc. DAC"
+      - "Proc. ICCAD"
+      - "Proc. DATE"
+
+  # 保留一个补充主题（如果你日后想跟）
+  # llm_agent_infra:
+  #   description: "Agent for LLM Infra (上一轮选题)"
+  #   arxiv_queries:
+  #     - 'cat:cs.LG AND abs:"LLM agent" AND abs:inference'
+  #     - 'cat:cs.DC AND abs:vLLM OR abs:"serving LLM"'
+  #   dblp_queries: []
+  #   dblp_venues: []
